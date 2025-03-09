@@ -3,21 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Music Playlist</title>
+    <title>My Music</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="playlist-container">
         <h1>my playlist</h1>
         <ul id="playlist"></ul>
-        <div class="add-song">
-            <input type="text" id="song-name" placeholder="song name">
-            <input type="text" id="song-artist" placeholder="artist">
-            <input type="text" id="song-url" placeholder="song file url (optional)">
-            <button onclick="addSong()">add song</button>
-        </div>
     </div>
-    <audio id="audio-player" controls hidden></audio>
+    <audio id="audio-player" controls></audio>
     <script src="script.js"></script>
 </body>
 </html>
