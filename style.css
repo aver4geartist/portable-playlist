@@ -34,8 +34,8 @@ ul {
 
 li {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: flex-start;
     padding: 10px;
     background: #282828;
     border-radius: 5px;
@@ -51,6 +51,7 @@ li:hover {
 .song-info {
     display: flex;
     align-items: center;
+    width: 100%;
 }
 
 .song-info img {
@@ -60,28 +61,27 @@ li:hover {
     margin-right: 10px;
 }
 
-/* custom audio player */
+/* custom audio controls */
 .audio-container {
-    width: 400px;
-    background: #181818;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-top: 10px;
+    width: 100%;
+    margin-top: 5px;
 }
 
 #play-button {
     background: #1db954;
     border: none;
     color: white;
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    font-size: 18px;
+    font-size: 14px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
     transition: 0.3s;
 }
 
@@ -89,24 +89,19 @@ li:hover {
     background: #17a74b;
 }
 
+/* progress bar */
 #progress-bar {
     flex: 1;
-    margin: 0 10px;
-    height: 5px;
-    background: #333;
+    height: 4px;
+    background: #3a3a3a; /* lighter gray than song background */
     border-radius: 5px;
     cursor: pointer;
     position: relative;
 }
 
 #progress-bar div {
-    height: 5px;
+    height: 100%;
     background: #1db954;
     width: 0%;
     border-radius: 5px;
-}
-
-#volume {
-    width: 60px;
-    cursor: pointer;
 }
