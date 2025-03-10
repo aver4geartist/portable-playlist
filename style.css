@@ -61,15 +61,15 @@ li:hover {
     margin-right: 10px;
 }
 
-/* custom audio controls */
+/* audio controls */
 .audio-container {
     display: flex;
     align-items: center;
     width: 100%;
-    margin-top: 5px;
+    margin-top: 8px;
 }
 
-#play-button {
+.play-button {
     background: #1db954;
     border: none;
     color: white;
@@ -85,23 +85,25 @@ li:hover {
     transition: 0.3s;
 }
 
-#play-button:hover {
+.play-button:hover {
     background: #17a74b;
 }
 
 /* progress bar */
-#progress-bar {
+.progress-bar-container {
     flex: 1;
     height: 4px;
     background: #3a3a3a; /* lighter gray than song background */
     border-radius: 5px;
-    cursor: pointer;
     position: relative;
+    cursor: pointer;
+    overflow: hidden;
 }
 
-#progress-bar div {
+.progress-bar {
     height: 100%;
     background: #1db954;
     width: 0%;
     border-radius: 5px;
+    transition: width 0.2s;
 }
