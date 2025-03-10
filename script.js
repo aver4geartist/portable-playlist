@@ -1,8 +1,6 @@
 // list of songs in the repository
 const songs = [
-    { name: "Song 1", artist: "Artist 1", file: "songs/song1.mp3" },
-    { name: "Song 2", artist: "Artist 2", file: "songs/song2.mp3" },
-    { name: "Song 3", artist: "Artist 3", file: "songs/song3.mp3" }
+    { name: "Resonance - Perfect Slowed", artist: "DRXYL", file: "songs/Resonance - Perfect Slowed.mp3" }
 ];
 
 let playlist = document.getElementById("playlist");
