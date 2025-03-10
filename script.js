@@ -4,12 +4,10 @@ const songs = [
 
 let playlist = document.getElementById("playlist");
 let audioPlayer = document.getElementById("audio-player");
-let playButton = document.getElementById("play-button");
-let progressBar = document.getElementById("progress-bar").firstElementChild;
-let volumeControl = document.getElementById("volume");
 
 songs.forEach(song => {
     let songItem = document.createElement("li");
+
     songItem.innerHTML = `
         <div class="song-info">
             <img src="https://cdn-icons-png.flaticon.com/512/26/26630.png" alt="music icon">
@@ -18,20 +16,35 @@ songs.forEach(song => {
                 <small>${song.artist}</small>
             </div>
         </div>
+        <div class="audio-container">
+            <button class="play-button">▶</button>
+            <div class="progress-bar"><div></div></div>
+        </div>
     `;
 
-    songItem.addEventListener("click", () => {
-        audioPlayer.src = song.file;
-        audioPlayer.oncanplaythrough = () => {
+    let playButton = songItem.querySelector(".play-button");
+    let progressBar = songItem.querySelector(".progress-bar div");
+
+    playButton.addEventListener("click", () => {
+        if (audioPlayer.src !== song.file) {
+            audioPlayer.src = song.file;
             audioPlayer.play();
             playButton.textContent = "⏸";
-        };
+        } else {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playButton.textContent = "⏸";
+            } else {
+                audioPlayer.pause();
+                playButton.textContent = "▶";
+            }
+        }
+    });
+
+    audioPlayer.addEventListener("timeupdate", () => {
+        let progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+        progressBar.style.width = progress + "%";
     });
 
     playlist.appendChild(songItem);
 });
-
-// play/pause button
-playButton.addEventListener("click", () => {
-    if (audioPlayer.paused) {
-        audio
