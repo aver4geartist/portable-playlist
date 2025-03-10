@@ -1,6 +1,8 @@
 // list of songs in the repository
 const songs = [
-    { name: "Resonance - Perfect Slowed", artist: "Noir/DRXYL", file: "songs/Resonance - Perfect Slowed.mp3" }
+    { name: "Song 1", artist: "Artist 1", file: "songs/song1.mp3" },
+    { name: "Song 2", artist: "Artist 2", file: "songs/song2.mp3" },
+    { name: "Song 3", artist: "Artist 3", file: "songs/song3.mp3" }
 ];
 
 let playlist = document.getElementById("playlist");
@@ -19,8 +21,19 @@ songs.forEach(song => {
     `;
 
     songItem.addEventListener("click", () => {
-        audioPlayer.src = song.file;
-        audioPlayer.play();
+        let songFile = song.file;
+        audioPlayer.src = songFile;
+
+        // wait until the audio is fully ready to play
+        audioPlayer.oncanplaythrough = () => {
+            audioPlayer.play();
+            console.log(`Now playing: ${song.name} by ${song.artist}`);
+        };
+
+        // if the song isn't fully loaded, let the user know
+        audioPlayer.onerror = () => {
+            alert("Sorry, this song couldn't be loaded.");
+        };
     });
 
     playlist.appendChild(songItem);
