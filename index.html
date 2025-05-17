@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>My Video Links</title>
   <style>
     body {
@@ -11,7 +11,8 @@
       padding: 20px;
     }
 
-    input, button {
+    input,
+    button {
       padding: 10px;
       margin: 5px 0;
       width: 100%;
@@ -75,10 +76,9 @@
   </style>
 </head>
 <body>
-
   <h2>Add a New Video Link</h2>
-  <input id="name" placeholder="Video name/title">
-  <input id="link" placeholder="Direct .mp4 link OR rule34 page link">
+  <input id="name" placeholder="Video name/title" />
+  <input id="link" placeholder="Direct .mp4 link OR rule34 page link" />
   <button onclick="saveLink()">Save</button>
 
   <h2>Saved Videos</h2>
@@ -94,9 +94,23 @@
         const data = await res.json();
         const html = data.contents;
 
-        const match = html.match(/<a href="index\.php\?page=post&amp;s=list&amp;tags=artist:([^"]+)"/);
-        return match ? decodeURIComponent(match[1]) : null;
+        // Parse the HTML string into a document
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        // Find the <li> with class "tag-type-artist tag"
+        const artistLi = doc.querySelector("li.tag-type-artist.tag");
+        if (artistLi) {
+          // The second <a> inside this li has the artist name
+          const artistLinks = artistLi.querySelectorAll("a");
+          if (artistLinks.length > 1) {
+            const artistName = artistLinks[1].textContent.trim();
+            return artistName;
+          }
+        }
+        return null;
       } catch (e) {
+        console.error("Error fetching artist:", e);
         return null;
       }
     }
@@ -141,7 +155,11 @@
         div.className = "entry";
         div.innerHTML = `
           <strong>${entry.name}</strong><br>
-          ${entry.artist ? `<span class="artist">Artist: ${entry.artist}</span><br>` : ""}
+          ${
+            entry.artist
+              ? `<span class="artist">Artist: ${entry.artist}</span><br>`
+              : ""
+          }
           <a href="${entry.link}" target="_blank">${entry.link}</a>
           ${getVideoTag(entry.link)}
           <button onclick="deleteEntry(${index})">Remove</button>
