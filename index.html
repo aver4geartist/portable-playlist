@@ -45,6 +45,12 @@
       border-radius: 4px;
     }
 
+    .entry video {
+      margin-top: 10px;
+      max-width: 100%;
+      border-radius: 5px;
+    }
+
     .entry button {
       background: linear-gradient(45deg, #ff4141, #c70039);
       float: right;
@@ -55,11 +61,16 @@
 
     a {
       color: #00bfff;
-      word-break: break-all;
+      word-break: break-word;
     }
 
     h2 {
       color: #ff69b4;
+    }
+
+    .artist {
+      color: #ffcc00;
+      font-style: italic;
     }
   </style>
 </head>
@@ -67,14 +78,60 @@
 
   <h2>Add a New Video Link</h2>
   <input id="name" placeholder="Video name/title">
-  <input id="link" placeholder="Direct video link (.mp4, .webm)">
+  <input id="link" placeholder="Direct .mp4 link OR rule34 page link">
   <button onclick="saveLink()">Save</button>
 
-  <h2>Saved Links</h2>
+  <h2>Saved Videos</h2>
   <div id="list"></div>
 
   <script>
     let entries = JSON.parse(localStorage.getItem("videoLinks") || "[]");
+
+    async function getArtistFromRule34(link) {
+      try {
+        const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(link);
+        const res = await fetch(proxy);
+        const data = await res.json();
+        const html = data.contents;
+
+        const match = html.match(/<a href="index\.php\?page=post&amp;s=list&amp;tags=artist:([^"]+)"/);
+        return match ? decodeURIComponent(match[1]) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function saveLink() {
+      const nameInput = document.getElementById("name");
+      const linkInput = document.getElementById("link");
+      const name = nameInput.value.trim();
+      const link = linkInput.value.trim();
+
+      if (!name || !link) {
+        alert("Please fill in both fields.");
+        return;
+      }
+
+      let artist = null;
+
+      if (link.includes("rule34.xxx")) {
+        artist = await getArtistFromRule34(link);
+      }
+
+      entries.push({ name, link, artist });
+      localStorage.setItem("videoLinks", JSON.stringify(entries));
+      nameInput.value = "";
+      linkInput.value = "";
+      renderList();
+    }
+
+    function getVideoTag(link) {
+      if (link.endsWith(".mp4") || link.endsWith(".webm")) {
+        return `<video src="${link}" autoplay muted loop controls></video>`;
+      } else {
+        return ""; // Not a direct video file
+      }
+    }
 
     function renderList() {
       const list = document.getElementById("list");
@@ -84,25 +141,13 @@
         div.className = "entry";
         div.innerHTML = `
           <strong>${entry.name}</strong><br>
+          ${entry.artist ? `<span class="artist">Artist: ${entry.artist}</span><br>` : ""}
           <a href="${entry.link}" target="_blank">${entry.link}</a>
+          ${getVideoTag(entry.link)}
           <button onclick="deleteEntry(${index})">Remove</button>
         `;
         list.appendChild(div);
       });
-    }
-
-    function saveLink() {
-      const name = document.getElementById("name").value.trim();
-      const link = document.getElementById("link").value.trim();
-      if (!name || !link) {
-        alert("Please fill in both fields.");
-        return;
-      }
-      entries.push({ name, link });
-      localStorage.setItem("videoLinks", JSON.stringify(entries));
-      document.getElementById("name").value = "";
-      document.getElementById("link").value = "";
-      renderList();
     }
 
     function deleteEntry(index) {
