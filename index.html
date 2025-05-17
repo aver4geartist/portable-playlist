@@ -11,8 +11,7 @@
       padding: 20px;
     }
 
-    input,
-    button {
+    input {
       padding: 10px;
       margin: 5px 0;
       width: 100%;
@@ -20,9 +19,6 @@
       border: none;
       border-radius: 5px;
       font-size: 16px;
-    }
-
-    input {
       background: #1e1e1e;
       color: #fff;
     }
@@ -33,21 +29,32 @@
       color: white;
       cursor: pointer;
       transition: transform 0.2s ease;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 5px;
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px 0;
+      border: none;
     }
 
     button:hover {
       transform: scale(1.05);
     }
 
-    /* Remove buttons - red gradient, no scale, brighten on hover */
+    /* Remove buttons - red gradient, same width as Save button, no float */
     .entry button {
       background: linear-gradient(45deg, #ff4c4c, #8b0000);
-      float: right;
-      font-size: 12px;
-      padding: 5px 10px;
-      margin-top: 5px;
       cursor: pointer;
       transition: none;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 5px;
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px 0 0 0;
+      border: none;
+      float: none;
     }
 
     .entry button:hover {
@@ -61,6 +68,7 @@
       border-left: 4px solid #ff0077;
       border-radius: 4px;
       position: relative;
+      max-width: 420px; /* keeps entries aligned with inputs/buttons */
     }
 
     .entry video {
@@ -103,14 +111,11 @@
         const data = await res.json();
         const html = data.contents;
 
-        // Parse the HTML string into a document
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
-        // Find the <li> with class "tag-type-artist tag"
         const artistLi = doc.querySelector("li.tag-type-artist.tag");
         if (artistLi) {
-          // The second <a> inside this li has the artist name
           const artistLinks = artistLi.querySelectorAll("a");
           if (artistLinks.length > 1) {
             const artistName = artistLinks[1].textContent.trim();
@@ -152,7 +157,7 @@
       if (link.endsWith(".mp4") || link.endsWith(".webm")) {
         return `<video src="${link}" autoplay muted loop controls></video>`;
       } else {
-        return ""; // Not a direct video file
+        return ""; 
       }
     }
 
