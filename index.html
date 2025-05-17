@@ -27,22 +27,38 @@
       color: #fff;
     }
 
-    button.save-btn {
-      background: linear-gradient(45deg, #00c853, #006400);
+    /* Save button - green gradient with scale on hover */
+    button {
+      background: linear-gradient(45deg, #28a745, #1c6e2e);
       color: white;
       cursor: pointer;
       transition: transform 0.2s ease;
     }
 
-    button.save-btn:hover {
+    button:hover {
       transform: scale(1.05);
+    }
+
+    /* Remove buttons - red gradient, no scale, brighten on hover */
+    .entry button {
+      background: linear-gradient(45deg, #ff4c4c, #8b0000);
+      float: right;
+      font-size: 12px;
+      padding: 5px 10px;
+      margin-top: 5px;
+      cursor: pointer;
+      transition: none;
+    }
+
+    .entry button:hover {
+      filter: brightness(1.2);
     }
 
     .entry {
       background: #1e1e1e;
       padding: 10px;
       margin: 10px 0;
-      border-left: 4px solid #00c853;
+      border-left: 4px solid #ff0077;
       border-radius: 4px;
       position: relative;
     }
@@ -51,25 +67,6 @@
       margin-top: 10px;
       max-width: 100%;
       border-radius: 5px;
-      display: block;
-    }
-
-    .entry button.remove-btn {
-      background: linear-gradient(45deg, #d50000, #8b0000);
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      font-size: 12px;
-      padding: 5px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      color: white;
-      border: none;
-      transition: transform 0.2s ease;
-    }
-
-    .entry button.remove-btn:hover {
-      transform: scale(1.05);
     }
 
     a {
@@ -84,7 +81,6 @@
     .artist {
       color: #ffcc00;
       font-style: italic;
-      margin-top: 5px;
     }
   </style>
 </head>
@@ -92,7 +88,7 @@
   <h2>Add a New Video Link</h2>
   <input id="name" placeholder="Video name/title" />
   <input id="link" placeholder="Direct .mp4 link OR rule34 page link" />
-  <button class="save-btn" onclick="saveLink()">Save</button>
+  <button onclick="saveLink()">Save</button>
 
   <h2>Saved Videos</h2>
   <div id="list"></div>
@@ -152,18 +148,12 @@
       renderList();
     }
 
-    function getPreviewHTML(entry) {
-      let preview = "";
-
-      if (entry.artist) {
-        preview += `<div class="artist">Artist: ${entry.artist}</div>`;
+    function getVideoTag(link) {
+      if (link.endsWith(".mp4") || link.endsWith(".webm")) {
+        return `<video src="${link}" autoplay muted loop controls></video>`;
+      } else {
+        return ""; // Not a direct video file
       }
-
-      if (entry.link.endsWith(".mp4") || entry.link.endsWith(".webm")) {
-        preview += `<video src="${entry.link}" autoplay muted loop controls></video>`;
-      }
-
-      return preview;
     }
 
     function renderList() {
@@ -174,9 +164,14 @@
         div.className = "entry";
         div.innerHTML = `
           <strong>${entry.name}</strong><br>
+          ${
+            entry.artist
+              ? `<span class="artist">Artist: ${entry.artist}</span><br>`
+              : ""
+          }
           <a href="${entry.link}" target="_blank">${entry.link}</a>
-          ${getPreviewHTML(entry)}
-          <button class="remove-btn" onclick="deleteEntry(${index})">Remove</button>
+          ${getVideoTag(entry.link)}
+          <button onclick="deleteEntry(${index})">Remove</button>
         `;
         list.appendChild(div);
       });
