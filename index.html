@@ -27,14 +27,14 @@
       color: #fff;
     }
 
-    button {
-      background: linear-gradient(45deg, #ff0057, #7a00ff);
+    button.save-btn {
+      background: linear-gradient(45deg, #00c853, #006400);
       color: white;
       cursor: pointer;
       transition: transform 0.2s ease;
     }
 
-    button:hover {
+    button.save-btn:hover {
       transform: scale(1.05);
     }
 
@@ -42,22 +42,34 @@
       background: #1e1e1e;
       padding: 10px;
       margin: 10px 0;
-      border-left: 4px solid #ff0077;
+      border-left: 4px solid #00c853;
       border-radius: 4px;
+      position: relative;
     }
 
     .entry video {
       margin-top: 10px;
       max-width: 100%;
       border-radius: 5px;
+      display: block;
     }
 
-    .entry button {
-      background: linear-gradient(45deg, #ff4141, #c70039);
-      float: right;
+    .entry button.remove-btn {
+      background: linear-gradient(45deg, #d50000, #8b0000);
+      position: absolute;
+      right: 10px;
+      top: 10px;
       font-size: 12px;
       padding: 5px 10px;
-      margin-top: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: white;
+      border: none;
+      transition: transform 0.2s ease;
+    }
+
+    .entry button.remove-btn:hover {
+      transform: scale(1.05);
     }
 
     a {
@@ -72,6 +84,7 @@
     .artist {
       color: #ffcc00;
       font-style: italic;
+      margin-top: 5px;
     }
   </style>
 </head>
@@ -79,7 +92,7 @@
   <h2>Add a New Video Link</h2>
   <input id="name" placeholder="Video name/title" />
   <input id="link" placeholder="Direct .mp4 link OR rule34 page link" />
-  <button onclick="saveLink()">Save</button>
+  <button class="save-btn" onclick="saveLink()">Save</button>
 
   <h2>Saved Videos</h2>
   <div id="list"></div>
@@ -139,12 +152,18 @@
       renderList();
     }
 
-    function getVideoTag(link) {
-      if (link.endsWith(".mp4") || link.endsWith(".webm")) {
-        return `<video src="${link}" autoplay muted loop controls></video>`;
-      } else {
-        return ""; // Not a direct video file
+    function getPreviewHTML(entry) {
+      let preview = "";
+
+      if (entry.artist) {
+        preview += `<div class="artist">Artist: ${entry.artist}</div>`;
       }
+
+      if (entry.link.endsWith(".mp4") || entry.link.endsWith(".webm")) {
+        preview += `<video src="${entry.link}" autoplay muted loop controls></video>`;
+      }
+
+      return preview;
     }
 
     function renderList() {
@@ -155,14 +174,9 @@
         div.className = "entry";
         div.innerHTML = `
           <strong>${entry.name}</strong><br>
-          ${
-            entry.artist
-              ? `<span class="artist">Artist: ${entry.artist}</span><br>`
-              : ""
-          }
           <a href="${entry.link}" target="_blank">${entry.link}</a>
-          ${getVideoTag(entry.link)}
-          <button onclick="deleteEntry(${index})">Remove</button>
+          ${getPreviewHTML(entry)}
+          <button class="remove-btn" onclick="deleteEntry(${index})">Remove</button>
         `;
         list.appendChild(div);
       });
