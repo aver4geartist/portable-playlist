@@ -2,96 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Rule34-style Video Archive</title>
+  <title>My Video Links</title>
   <style>
-    :root {
-      --bg: #f2f2f2;
-      --text: #222;
-      --card-bg: white;
-      --accent: #7289da;
-    }
-
-    body.dark {
-      --bg: #1a1a1a;
-      --text: #ddd;
-      --card-bg: #2b2b2b;
-      --accent: #00aaff;
-    }
-
     body {
       font-family: Arial, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      background-color: #121212;
+      color: #ffffff;
       padding: 20px;
-      transition: background 0.3s, color 0.3s;
-    }
-
-    .dark-toggle {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      padding: 8px 12px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 4px;
     }
 
     input, button {
       padding: 10px;
       margin: 5px 0;
       width: 100%;
-      max-width: 500px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      max-width: 400px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    input {
+      background: #1e1e1e;
+      color: #fff;
     }
 
     button {
-      background: var(--accent);
+      background: linear-gradient(45deg, #ff0057, #7a00ff);
       color: white;
-      border: none;
+      cursor: pointer;
+      transition: transform 0.2s ease;
     }
 
-    h2 {
-      color: var(--accent);
+    button:hover {
+      transform: scale(1.05);
     }
 
     .entry {
-      background: var(--card-bg);
+      background: #1e1e1e;
       padding: 10px;
-      margin: 15px 0;
-      border-left: 5px solid var(--accent);
+      margin: 10px 0;
+      border-left: 4px solid #ff0077;
       border-radius: 4px;
     }
 
-    .entry video {
-      width: 100%;
-      max-width: 500px;
-      margin-top: 10px;
+    .entry button {
+      background: linear-gradient(45deg, #ff4141, #c70039);
+      float: right;
+      font-size: 12px;
+      padding: 5px 10px;
+      margin-top: 5px;
     }
 
-    .entry button {
-      float: right;
-      background: crimson;
-      color: white;
-      border: none;
-      padding: 5px;
-      margin-top: 5px;
-      cursor: pointer;
+    a {
+      color: #00bfff;
+      word-break: break-all;
+    }
+
+    h2 {
+      color: #ff69b4;
     }
   </style>
 </head>
 <body>
 
-  <button class="dark-toggle" onclick="toggleDarkMode()">🌓 Dark Mode</button>
-
-  <h2>Add a New Video</h2>
-  <input id="name" placeholder="Video name (e.g. 'blonde gif 3')">
-  <input id="link" placeholder="Paste direct .mp4 or .webm video link">
+  <h2>Add a New Video Link</h2>
+  <input id="name" placeholder="Video name/title">
+  <input id="link" placeholder="Direct video link (.mp4, .webm)">
   <button onclick="saveLink()">Save</button>
 
-  <h2>Saved Videos</h2>
+  <h2>Saved Links</h2>
   <div id="list"></div>
 
   <script>
@@ -104,9 +83,9 @@
         const div = document.createElement("div");
         div.className = "entry";
         div.innerHTML = `
-          <strong>${entry.name}</strong>
-          <button onclick="deleteEntry(${index})">Remove</button><br>
-          <video src="${entry.link}" controls autoplay muted loop></video>
+          <strong>${entry.name}</strong><br>
+          <a href="${entry.link}" target="_blank">${entry.link}</a>
+          <button onclick="deleteEntry(${index})">Remove</button>
         `;
         list.appendChild(div);
       });
@@ -116,7 +95,7 @@
       const name = document.getElementById("name").value.trim();
       const link = document.getElementById("link").value.trim();
       if (!name || !link) {
-        alert("Both name and video link are required.");
+        alert("Please fill in both fields.");
         return;
       }
       entries.push({ name, link });
@@ -127,26 +106,13 @@
     }
 
     function deleteEntry(index) {
-      if (confirm("Remove this video?")) {
+      if (confirm("Delete this video link?")) {
         entries.splice(index, 1);
         localStorage.setItem("videoLinks", JSON.stringify(entries));
         renderList();
       }
     }
 
-    function toggleDarkMode() {
-      document.body.classList.toggle("dark");
-      localStorage.setItem("darkMode", document.body.classList.contains("dark"));
-    }
-
-    function loadDarkMode() {
-      const dark = localStorage.getItem("darkMode");
-      if (dark === "true") {
-        document.body.classList.add("dark");
-      }
-    }
-
-    loadDarkMode();
     renderList();
   </script>
 </body>
