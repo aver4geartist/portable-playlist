@@ -160,6 +160,38 @@
       }
     }
 
+    async function getCharactersFromRule34(link) {
+      try {
+        const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(link);
+        const res = await fetch(proxy);
+        const data = await res.json();
+        const html = data.contents;
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        const charLis = Array.from(doc.querySelectorAll("li.tag-type-character.tag"));
+        const characters = [];
+
+        charLis.forEach(li => {
+          const links = Array.from(li.querySelectorAll("a"));
+          links.forEach(a => {
+            const name = a.textContent.trim();
+            const href = a.getAttribute("href");
+            if (name !== "?" && href && !href.includes("index.php?page=wiki")) {
+              characters.push(name);
+            }
+          });
+        });
+
+        const uniqueChars = [...new Set(characters)];
+        return uniqueChars.length ? uniqueChars.join(", ") : null;
+      } catch (e) {
+        console.error("Error fetching characters:", e);
+        return null;
+      }
+    }
+
     async function saveLink() {
       const nameInput = document.getElementById("name");
       const linkInput = document.getElementById("link");
@@ -172,11 +204,13 @@
       }
 
       let artist = null;
+      let character = null;
       if (link.includes("rule34.xxx")) {
         artist = await getArtistFromRule34(link);
+        character = await getCharactersFromRule34(link);
       }
 
-      entries.push({ name, link, artist });
+      entries.push({ name, link, artist, character });
       localStorage.setItem("videoLinks", JSON.stringify(entries));
       nameInput.value = "";
       linkInput.value = "";
@@ -185,7 +219,7 @@
 
     function getVideoTag(link) {
       if (link.endsWith(".mp4") || link.endsWith(".webm")) {
-        return <video src="${link}" autoplay muted loop controls></video>;
+        return `<video src="${link}" autoplay muted loop controls></video>`;
       }
       return "";
     }
@@ -196,13 +230,14 @@
       entries.forEach((entry, index) => {
         const div = document.createElement("div");
         div.className = "entry";
-        div.innerHTML = 
+        div.innerHTML = `
           <strong>${entry.name}</strong><br>
-          ${entry.artist ? <span class="artist">Artist: ${entry.artist}</span><br> : ""}
+          ${entry.artist ? `<span class="artist">Artist: ${entry.artist}</span><br>` : ""}
+          ${entry.character ? `<span class="artist">Character(s): ${entry.character}</span><br>` : ""}
           <a href="${entry.link}" target="_blank">${entry.link}</a>
           ${getVideoTag(entry.link)}
           <button onclick="deleteEntry(${index})">Remove</button>
-        ;
+        `;
         list.appendChild(div);
       });
     }
@@ -219,5 +254,3 @@
   </script>
 </body>
 </html>
-
-
