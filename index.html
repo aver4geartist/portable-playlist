@@ -16,8 +16,8 @@
       --remove-button-hover: #f85149;
       --link-color: #58a6ff;
       --highlight: #ffffff;
-      --artist-color: #f0a500; /* gold */
-      --characters-color: #4caf50; /* green */
+      --artist-color: gold; /* Gold for artist */
+      --character-color: #2ecc40; /* Green for characters */
     }
 
     * {
@@ -105,17 +105,13 @@
     .artist {
       color: var(--artist-color);
       font-style: italic;
-      display: block;
-      margin-top: 5px;
-      margin-bottom: 5px;
+      font-weight: bold;
     }
-
-    .characters {
-      color: var(--characters-color);
+    .character {
+      color: var(--character-color);
       font-style: italic;
-      display: block;
-      margin-top: 5px;
-      margin-bottom: 5px;
+      font-weight: bold;
+      margin-left: 5px;
     }
 
     @media (max-width: 600px) {
@@ -129,7 +125,7 @@
   <div class="container">
     <h2>Add a New Video Link</h2>
     <input id="name" placeholder="Video name/title (optional)" />
-    <input id="link" placeholder="Direct .mp4 link OR rule34 page link" />
+    <input id="link" placeholder="Direct .mp4 link OR rule34 page OR xvideos page link" />
     <button onclick="saveLink()">Save</button>
 
     <h2>Saved Videos</h2>
@@ -157,7 +153,6 @@
           links.forEach(a => {
             const name = a.textContent.trim();
             const href = a.getAttribute("href");
-            // skip links that are counts or unknowns
             if (name !== "?" && href && !href.includes("index.php?page=wiki")) {
               artists.push(name);
             }
@@ -182,10 +177,10 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
-        const charLis = Array.from(doc.querySelectorAll("li.tag-type-character.tag"));
+        const characterLis = Array.from(doc.querySelectorAll("li.tag-type-character.tag"));
         const characters = [];
 
-        charLis.forEach(li => {
+        characterLis.forEach(li => {
           const links = Array.from(li.querySelectorAll("a"));
           links.forEach(a => {
             const name = a.textContent.trim();
@@ -196,10 +191,31 @@
           });
         });
 
-        const uniqueChars = [...new Set(characters)];
-        return uniqueChars.length ? uniqueChars.join(", ") : null;
+        const uniqueCharacters = [...new Set(characters)];
+        return uniqueCharacters.length ? uniqueCharacters.join(", ") : null;
       } catch (e) {
         console.error("Error fetching characters:", e);
+        return null;
+      }
+    }
+
+    async function getXVideosTitle(link) {
+      try {
+        const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(link);
+        const res = await fetch(proxy);
+        const data = await res.json();
+        const html = data.contents;
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        const titleSpan = doc.querySelector("#title-auto-tr");
+        if (titleSpan && titleSpan.textContent.trim()) {
+          return titleSpan.textContent.trim();
+        }
+        return null;
+      } catch (e) {
+        console.error("Error fetching xvideos title:", e);
         return null;
       }
     }
@@ -215,15 +231,25 @@
         return;
       }
 
-      if (!name) {
-        name = "Untitled Video";
-      }
-
       let artist = null;
       let character = null;
+
       if (link.includes("rule34.xxx")) {
         artist = await getArtistFromRule34(link);
         character = await getCharactersFromRule34(link);
+      } else if (link.includes("xvideos.com")) {
+        if (!name) {
+          const xTitle = await getXVideosTitle(link);
+          if (xTitle) {
+            name = xTitle;
+          } else {
+            name = "Untitled Video";
+          }
+        }
+      }
+
+      if (!name) {
+        name = "Untitled Video";
       }
 
       entries.push({ name, link, artist, character });
@@ -246,11 +272,12 @@
       entries.forEach((entry, index) => {
         const div = document.createElement("div");
         div.className = "entry";
+
         div.innerHTML = `
           <strong>${entry.name}</strong><br>
-          ${entry.artist ? `<span class="artist">Artist: ${entry.artist}</span>` : ""}
-          ${entry.character ? `<span class="characters">Characters: ${entry.character}</span>` : ""}
-          <a href="${entry.link}" target="_blank">${entry.link}</a>
+          ${entry.artist ? `<span class="artist">Artist: ${entry.artist}</span><br>` : ""}
+          ${entry.character ? `<span class="character">Characters: ${entry.character}</span><br>` : ""}
+          <a href="${entry.link}" target="_blank" rel="noopener noreferrer">${entry.link}</a>
           ${getVideoTag(entry.link)}
           <button onclick="deleteEntry(${index})">Remove</button>
         `;
