@@ -58,6 +58,7 @@
       color: white;
       border: none;
       transition: background-color 0.2s;
+      position: relative;
     }
 
     button:hover {
@@ -115,6 +116,26 @@
       margin-left: 5px;
     }
 
+    /* Spinner for loading state */
+    button.loading::after {
+      content: "";
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-left: 8px;
+      border: 2px solid white;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
     @media (max-width: 600px) {
       body {
         padding: 15px;
@@ -127,7 +148,7 @@
     <h2>Add a New Video Link</h2>
     <input id="name" placeholder="Video name/title (optional)" />
     <input id="link" placeholder="Direct .mp4 link OR rule34 page OR xvideos page link" />
-    <button onclick="saveLink()">Save</button>
+    <button id="saveBtn" onclick="saveLink()">Save</button>
 
     <h2>Saved Videos</h2>
     <div id="list"></div>
@@ -207,9 +228,9 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
-        const titleTag = doc.querySelector("title");
-        if (titleTag && titleTag.textContent.trim()) {
-          return titleTag.textContent.replace(/ - XVIDEOS\.COM$/i, "").trim();
+        const titleSpan = doc.querySelector("#title-auto-tr");
+        if (titleSpan && titleSpan.textContent.trim()) {
+          return titleSpan.textContent.trim();
         }
         return null;
       } catch (e) {
@@ -221,6 +242,8 @@
     async function saveLink() {
       const nameInput = document.getElementById("name");
       const linkInput = document.getElementById("link");
+      const saveButton = document.getElementById("saveBtn");
+
       let name = nameInput.value.trim();
       const link = linkInput.value.trim();
 
@@ -229,18 +252,24 @@
         return;
       }
 
+      // Activate loading spinner
+      saveButton.disabled = true;
+      saveButton.classList.add("loading");
+
       let artist = null;
       let character = null;
 
       if (link.includes("rule34.xxx")) {
         artist = await getArtistFromRule34(link);
         character = await getCharactersFromRule34(link);
-      }
-
-      if (link.includes("xvideos.com")) {
-        const xTitle = await getXVideosTitle(link);
-        if (xTitle) {
-          name = xTitle; // always override user input
+      } else if (link.includes("xvideos.com")) {
+        if (!name) {
+          const xTitle = await getXVideosTitle(link);
+          if (xTitle) {
+            name = xTitle;
+          } else {
+            name = "Untitled Video";
+          }
         }
       }
 
@@ -253,6 +282,10 @@
       nameInput.value = "";
       linkInput.value = "";
       renderList();
+
+      // Reset loading spinner
+      saveButton.disabled = false;
+      saveButton.classList.remove("loading");
     }
 
     function getVideoTag(link) {
@@ -268,7 +301,6 @@
       entries.forEach((entry, index) => {
         const div = document.createElement("div");
         div.className = "entry";
-
         div.innerHTML = `
           <strong>${entry.name}</strong><br>
           ${entry.artist ? `<span class="artist">Artist: ${entry.artist}</span><br>` : ""}
