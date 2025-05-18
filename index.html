@@ -136,15 +136,24 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
-        const artistLi = doc.querySelector("li.tag-type-artist.tag");
-        if (artistLi) {
-          const artistLinks = Array.from(artistLi.querySelectorAll("a"))
-            .filter(a => !a.href.includes("/index.php?page=wiki")); // skips the artist count
-          
-          const artistNames = artistLinks.map(a => a.textContent.trim());
-          return artistNames.join(", ");
-        }
-        return null;
+        const artistLis = Array.from(doc.querySelectorAll("li.tag-type-artist.tag"));
+        const artists = [];
+
+        artistLis.forEach(li => {
+          const links = Array.from(li.querySelectorAll("a"));
+          links.forEach(a => {
+            const name = a.textContent.trim();
+            const href = a.getAttribute("href");
+            // skip links that are counts or unknowns
+            if (name !== "?" && href && !href.includes("index.php?page=wiki")) {
+              artists.push(name);
+            }
+          });
+        });
+
+        // remove duplicates
+        const uniqueArtists = [...new Set(artists)];
+        return uniqueArtists.length ? uniqueArtists.join(", ") : null;
       } catch (e) {
         console.error("Error fetching artist:", e);
         return null;
