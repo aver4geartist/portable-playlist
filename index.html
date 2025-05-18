@@ -104,7 +104,7 @@
   <script>
     let entries = JSON.parse(localStorage.getItem("videoLinks") || "[]");
 
-    async function getRule34Data(link) {
+    async function getArtistFromRule34(link) {
       try {
         const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(link);
         const res = await fetch(proxy);
@@ -114,27 +114,18 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
-        // Extract artist
-        let artist = null;
         const artistLi = doc.querySelector("li.tag-type-artist.tag");
         if (artistLi) {
           const artistLinks = artistLi.querySelectorAll("a");
           if (artistLinks.length > 1) {
-            artist = artistLinks[1].textContent.trim();
+            const artistName = artistLinks[1].textContent.trim();
+            return artistName;
           }
         }
-
-        // Extract direct video URL
-        let videoUrl = null;
-        const videoSource = doc.querySelector("#gelcomVideoPlayer source");
-        if (videoSource) {
-          videoUrl = videoSource.src;
-        }
-
-        return { artist, videoUrl };
+        return null;
       } catch (e) {
-        console.error("Error fetching rule34 data:", e);
-        return { artist: null, videoUrl: null };
+        console.error("Error fetching artist:", e);
+        return null;
       }
     }
 
@@ -150,31 +141,23 @@
       }
 
       let artist = null;
-      let videoUrl = null;
 
       if (link.includes("rule34.xxx")) {
-        const data = await getRule34Data(link);
-        artist = data.artist;
-        videoUrl = data.videoUrl;
+        artist = await getArtistFromRule34(link);
       }
 
-      entries.push({ name, link, artist, videoUrl });
+      entries.push({ name, link, artist });
       localStorage.setItem("videoLinks", JSON.stringify(entries));
       nameInput.value = "";
       linkInput.value = "";
       renderList();
     }
 
-    function getVideoTag(entry) {
-      const link = entry.link;
-      const videoUrl = entry.videoUrl;
-
-      if (videoUrl) {
-        return `<video src="${videoUrl}" autoplay muted loop controls></video>`;
-      } else if (link.endsWith(".mp4") || link.endsWith(".webm")) {
+    function getVideoTag(link) {
+      if (link.endsWith(".mp4") || link.endsWith(".webm")) {
         return `<video src="${link}" autoplay muted loop controls></video>`;
       } else {
-        return "";
+        return ""; 
       }
     }
 
@@ -192,7 +175,7 @@
               : ""
           }
           <a href="${entry.link}" target="_blank">${entry.link}</a>
-          ${getVideoTag(entry)}
+          ${getVideoTag(entry.link)}
           <button onclick="deleteEntry(${index})">Remove</button>
         `;
         list.appendChild(div);
