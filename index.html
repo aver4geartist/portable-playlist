@@ -71,11 +71,16 @@
       background-color: var(--button-hover);
     }
 
+    /* Remove button styled same as save button (full width) */
     .entry button {
       background-color: var(--remove-button-bg);
-      width: auto;
-      padding: 6px 12px;
+      width: 100%;
+      padding: 10px;
       margin-top: 10px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
     }
 
     .entry button:hover {
@@ -164,10 +169,8 @@
   </div>
 
   <script>
-    // Load saved entries or start empty
     let entries = JSON.parse(localStorage.getItem("videoLinks") || "[]");
 
-    // Fetch artist(s) from a Rule34 page
     async function getArtistFromRule34(link) {
       try {
         const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(link);
@@ -199,7 +202,6 @@
       }
     }
 
-    // Fetch character(s) from a Rule34 page
     async function getCharactersFromRule34(link) {
       try {
         const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(link);
@@ -231,7 +233,7 @@
       }
     }
 
-    // Fetch page title from an xvideos.com link as video title fallback
+    // NEW: Extract xvideos title forcibly from <h2 class="page-title">
     async function getXVideosTitle(link) {
       try {
         const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(link);
@@ -241,13 +243,13 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
-        // Use <title> element and clean it up
-        const titleTag = doc.querySelector("title");
-        if (titleTag) {
-          let titleText = titleTag.textContent.trim();
-          // Remove trailing site suffix if present
-          titleText = titleText.replace(/ - Xvideos\.com$/, "").trim();
-          return titleText || null;
+        const h2title = doc.querySelector("h2.page-title");
+        if (h2title) {
+          // Remove any nested <span> content (like duration)
+          const span = h2title.querySelector("span.duration");
+          if(span) span.remove();
+          const text = h2title.textContent.trim();
+          return text || null;
         }
         return null;
       } catch (e) {
@@ -256,7 +258,6 @@
       }
     }
 
-    // Save new video entry and update UI/localStorage
     async function saveLink() {
       const nameInput = document.getElementById("name");
       const linkInput = document.getElementById("link");
@@ -270,11 +271,10 @@
         return;
       }
 
-      // Activate loading spinner and disable button
       saveButton.disabled = true;
       saveButton.classList.add("loading");
 
-      // Give browser a moment to render loading spinner
+      // Wait a tick so spinner appears before heavy async tasks
       await new Promise(r => setTimeout(r, 50));
 
       let artist = null;
@@ -284,10 +284,9 @@
         artist = await getArtistFromRule34(link);
         character = await getCharactersFromRule34(link);
       } else if (link.includes("xvideos.com")) {
-        if (!name) {
-          const xTitle = await getXVideosTitle(link);
-          name = xTitle || "Untitled Video";
-        }
+        // Always override the name forcibly from <h2.page-title> on xvideos links, regardless of input
+        const xTitle = await getXVideosTitle(link);
+        name = xTitle || "Untitled Video";
       }
 
       if (!name) {
@@ -297,18 +296,15 @@
       entries.push({ name, link, artist, character });
       localStorage.setItem("videoLinks", JSON.stringify(entries));
 
-      // Clear inputs
       nameInput.value = "";
       linkInput.value = "";
 
       renderList();
 
-      // Reset button
       saveButton.disabled = false;
       saveButton.classList.remove("loading");
     }
 
-    // Return a video tag if the link is a direct video file
     function getVideoTag(link) {
       if (link.endsWith(".mp4") || link.endsWith(".webm")) {
         return `<video src="${link}" autoplay muted loop controls></video>`;
@@ -316,7 +312,6 @@
       return "";
     }
 
-    // Render the saved videos list
     function renderList() {
       const list = document.getElementById("list");
       list.innerHTML = "";
@@ -335,7 +330,6 @@
       });
     }
 
-    // Delete entry and update localStorage/UI
     function deleteEntry(index) {
       if (confirm("Delete this video link?")) {
         entries.splice(index, 1);
@@ -344,7 +338,6 @@
       }
     }
 
-    // Initial render on page load
     renderList();
   </script>
 </body>
