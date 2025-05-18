@@ -16,8 +16,8 @@
       --remove-button-hover: #f85149;
       --link-color: #58a6ff;
       --highlight: #ffffff;
-      --artist-color: gold; /* Gold for artist */
-      --character-color: #2ecc40; /* Green for characters */
+      --artist-color: gold;
+      --character-color: #2ecc40;
     }
 
     * {
@@ -107,6 +107,7 @@
       font-style: italic;
       font-weight: bold;
     }
+
     .character {
       color: var(--character-color);
       font-style: italic;
@@ -141,7 +142,6 @@
         const res = await fetch(proxy);
         const data = await res.json();
         const html = data.contents;
-
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
@@ -173,7 +173,6 @@
         const res = await fetch(proxy);
         const data = await res.json();
         const html = data.contents;
-
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
@@ -205,13 +204,12 @@
         const res = await fetch(proxy);
         const data = await res.json();
         const html = data.contents;
-
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
-        const titleSpan = doc.querySelector("#title-auto-tr");
-        if (titleSpan && titleSpan.textContent.trim()) {
-          return titleSpan.textContent.trim();
+        const titleTag = doc.querySelector("title");
+        if (titleTag && titleTag.textContent.trim()) {
+          return titleTag.textContent.replace(/ - XVIDEOS\.COM$/i, "").trim();
         }
         return null;
       } catch (e) {
@@ -237,14 +235,12 @@
       if (link.includes("rule34.xxx")) {
         artist = await getArtistFromRule34(link);
         character = await getCharactersFromRule34(link);
-      } else if (link.includes("xvideos.com")) {
-        if (!name) {
-          const xTitle = await getXVideosTitle(link);
-          if (xTitle) {
-            name = xTitle;
-          } else {
-            name = "Untitled Video";
-          }
+      }
+
+      if (link.includes("xvideos.com")) {
+        const xTitle = await getXVideosTitle(link);
+        if (xTitle) {
+          name = xTitle; // always override user input
         }
       }
 
