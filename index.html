@@ -70,6 +70,26 @@
       background-color: var(--remove-button-hover);
     }
 
+    .copy-button {
+      background-color: #5a5f66;
+      color: white;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .copy-button:hover {
+      background-color: #7b8189;
+    }
+
     .entry {
       background-color: var(--input-bg);
       border: 1px solid var(--border-color);
@@ -144,14 +164,12 @@
           links.forEach(a => {
             const name = a.textContent.trim();
             const href = a.getAttribute("href");
-            // skip links that are counts or unknowns
             if (name !== "?" && href && !href.includes("index.php?page=wiki")) {
               artists.push(name);
             }
           });
         });
 
-        // remove duplicates
         const uniqueArtists = [...new Set(artists)];
         return uniqueArtists.length ? uniqueArtists.join(", ") : null;
       } catch (e) {
@@ -201,7 +219,10 @@
           ${entry.artist ? `<span class="artist">Artist: ${entry.artist}</span><br>` : ""}
           <a href="${entry.link}" target="_blank">${entry.link}</a>
           ${getVideoTag(entry.link)}
-          <button onclick="deleteEntry(${index})">Remove</button>
+          <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button onclick="copyLink('${entry.link}')" title="Copy Link" class="copy-button">📋</button>
+            <button onclick="deleteEntry(${index})">Remove</button>
+          </div>
         `;
         list.appendChild(div);
       });
@@ -213,6 +234,15 @@
         localStorage.setItem("videoLinks", JSON.stringify(entries));
         renderList();
       }
+    }
+
+    function copyLink(link) {
+      navigator.clipboard.writeText(link).then(() => {
+        alert("Link copied to clipboard!");
+      }).catch(err => {
+        console.error("Copy failed", err);
+        alert("Failed to copy link.");
+      });
     }
 
     renderList();
