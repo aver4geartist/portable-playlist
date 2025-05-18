@@ -16,7 +16,8 @@
       --remove-button-hover: #f85149;
       --link-color: #58a6ff;
       --highlight: #ffffff;
-      --tag-highlight: #f0a500; /* new color for artist/characters */
+      --artist-color: #f0a500; /* gold */
+      --characters-color: #4caf50; /* green */
     }
 
     * {
@@ -101,8 +102,16 @@
       text-decoration: underline;
     }
 
-    .artist, .characters {
-      color: var(--tag-highlight);
+    .artist {
+      color: var(--artist-color);
+      font-style: italic;
+      display: block;
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+
+    .characters {
+      color: var(--characters-color);
       font-style: italic;
       display: block;
       margin-top: 5px;
@@ -155,7 +164,6 @@
           });
         });
 
-        // remove duplicates
         const uniqueArtists = [...new Set(artists)];
         return uniqueArtists.length ? uniqueArtists.join(", ") : null;
       } catch (e) {
