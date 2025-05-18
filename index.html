@@ -16,6 +16,7 @@
       --remove-button-hover: #f85149;
       --link-color: #58a6ff;
       --highlight: #ffffff;
+      --tag-highlight: #f0a500; /* new color for artist/characters */
     }
 
     * {
@@ -100,9 +101,12 @@
       text-decoration: underline;
     }
 
-    .artist {
-      color: #d29922;
+    .artist, .characters {
+      color: var(--tag-highlight);
       font-style: italic;
+      display: block;
+      margin-top: 5px;
+      margin-bottom: 5px;
     }
 
     @media (max-width: 600px) {
@@ -115,7 +119,7 @@
 <body>
   <div class="container">
     <h2>Add a New Video Link</h2>
-    <input id="name" placeholder="Video name/title" />
+    <input id="name" placeholder="Video name/title (optional)" />
     <input id="link" placeholder="Direct .mp4 link OR rule34 page link" />
     <button onclick="saveLink()">Save</button>
 
@@ -195,12 +199,16 @@
     async function saveLink() {
       const nameInput = document.getElementById("name");
       const linkInput = document.getElementById("link");
-      const name = nameInput.value.trim();
+      let name = nameInput.value.trim();
       const link = linkInput.value.trim();
 
-      if (!name || !link) {
-        alert("Please fill in both fields.");
+      if (!link) {
+        alert("Please enter a video link.");
         return;
+      }
+
+      if (!name) {
+        name = "Untitled Video";
       }
 
       let artist = null;
@@ -232,8 +240,8 @@
         div.className = "entry";
         div.innerHTML = `
           <strong>${entry.name}</strong><br>
-          ${entry.artist ? `<span class="artist">Artist: ${entry.artist}</span><br>` : ""}
-          ${entry.character ? `<span class="artist">Character(s): ${entry.character}</span><br>` : ""}
+          ${entry.artist ? `<span class="artist">Artist: ${entry.artist}</span>` : ""}
+          ${entry.character ? `<span class="characters">Characters: ${entry.character}</span>` : ""}
           <a href="${entry.link}" target="_blank">${entry.link}</a>
           ${getVideoTag(entry.link)}
           <button onclick="deleteEntry(${index})">Remove</button>
