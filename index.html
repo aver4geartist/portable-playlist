@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>My Video Links</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
       --bg-color: #0d1117;
@@ -14,39 +15,46 @@
       --remove-button-bg: #da3633;
       --remove-button-hover: #f85149;
       --link-color: #58a6ff;
-      --highlight: #ff69b4;
+      --highlight: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
-      padding: 40px;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      width: 100%;
     }
 
     input {
-      padding: 8px 10px;
-      margin-bottom: 10px;
-      width: 100%;
-      max-width: 500px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
       background-color: var(--input-bg);
       color: var(--text-color);
-      font-size: 14px;
     }
 
     button {
       background-color: var(--button-bg);
       color: white;
-      font-size: 14px;
-      padding: 8px 10px;
       border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-bottom: 20px;
-      max-width: 500px;
-      width: 100%;
       transition: background-color 0.2s;
     }
 
@@ -56,7 +64,6 @@
 
     .entry button {
       background-color: var(--remove-button-bg);
-      margin-top: 10px;
     }
 
     .entry button:hover {
@@ -66,21 +73,26 @@
     .entry {
       background-color: var(--input-bg);
       border: 1px solid var(--border-color);
-      padding: 15px;
-      margin-top: 15px;
       border-radius: 6px;
-      max-width: 520px;
+      padding: 15px;
+      margin-top: 10px;
     }
 
     .entry video {
       margin-top: 10px;
-      max-width: 100%;
+      width: 100%;
       border-radius: 6px;
       border: 1px solid var(--border-color);
     }
 
+    h2 {
+      color: var(--highlight);
+      margin-bottom: 5px;
+    }
+
     a {
       color: var(--link-color);
+      word-break: break-word;
       text-decoration: none;
     }
 
@@ -88,26 +100,28 @@
       text-decoration: underline;
     }
 
-    h2 {
-      color: var(--highlight);
-      font-size: 20px;
-      margin-bottom: 15px;
-    }
-
     .artist {
       color: #d29922;
       font-style: italic;
     }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 15px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h2>Add a New Video Link</h2>
-  <input id="name" placeholder="Video name/title" />
-  <input id="link" placeholder="Direct .mp4 link OR rule34 page link" />
-  <button onclick="saveLink()">Save</button>
+  <div class="container">
+    <h2>Add a New Video Link</h2>
+    <input id="name" placeholder="Video name/title" />
+    <input id="link" placeholder="Direct .mp4 link OR rule34 page link" />
+    <button onclick="saveLink()">Save</button>
 
-  <h2>Saved Videos</h2>
-  <div id="list"></div>
+    <h2>Saved Videos</h2>
+    <div id="list"></div>
+  </div>
 
   <script>
     let entries = JSON.parse(localStorage.getItem("videoLinks") || "[]");
@@ -149,7 +163,6 @@
       }
 
       let artist = null;
-
       if (link.includes("rule34.xxx")) {
         artist = await getArtistFromRule34(link);
       }
@@ -164,9 +177,8 @@
     function getVideoTag(link) {
       if (link.endsWith(".mp4") || link.endsWith(".webm")) {
         return `<video src="${link}" autoplay muted loop controls></video>`;
-      } else {
-        return "";
       }
+      return "";
     }
 
     function renderList() {
@@ -177,11 +189,7 @@
         div.className = "entry";
         div.innerHTML = `
           <strong>${entry.name}</strong><br>
-          ${
-            entry.artist
-              ? `<span class="artist">Artist: ${entry.artist}</span><br>`
-              : ""
-          }
+          ${entry.artist ? `<span class="artist">Artist: ${entry.artist}</span><br>` : ""}
           <a href="${entry.link}" target="_blank">${entry.link}</a>
           ${getVideoTag(entry.link)}
           <button onclick="deleteEntry(${index})">Remove</button>
