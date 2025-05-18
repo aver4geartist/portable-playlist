@@ -138,14 +138,12 @@
 
         const artistLi = doc.querySelector("li.tag-type-artist.tag");
         if (artistLi) {
-          const artistLinks = artistLi.querySelectorAll("a[href*='artist:']");
-          const artists = Array.from(artistLinks)
-            .map(a => a.textContent.trim())
-            .filter(name => name.toLowerCase() !== "artist");
-
-          return artists.length > 0 ? artists.join(", ") : null;
+          const artistLinks = Array.from(artistLi.querySelectorAll("a"))
+            .filter(a => !a.href.includes("/index.php?page=wiki")); // skips the artist count
+          
+          const artistNames = artistLinks.map(a => a.textContent.trim());
+          return artistNames.join(", ");
         }
-
         return null;
       } catch (e) {
         console.error("Error fetching artist:", e);
