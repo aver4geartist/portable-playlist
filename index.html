@@ -59,14 +59,23 @@
       border: none;
       transition: background-color 0.2s;
       position: relative;
+      cursor: pointer;
     }
 
-    button:hover {
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    button:hover:not(:disabled) {
       background-color: var(--button-hover);
     }
 
     .entry button {
       background-color: var(--remove-button-bg);
+      width: auto;
+      padding: 6px 12px;
+      margin-top: 10px;
     }
 
     .entry button:hover {
@@ -155,8 +164,10 @@
   </div>
 
   <script>
+    // Load saved entries or start empty
     let entries = JSON.parse(localStorage.getItem("videoLinks") || "[]");
 
+    // Fetch artist(s) from a Rule34 page
     async function getArtistFromRule34(link) {
       try {
         const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(link);
@@ -188,6 +199,7 @@
       }
     }
 
+    // Fetch character(s) from a Rule34 page
     async function getCharactersFromRule34(link) {
       try {
         const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(link);
@@ -219,6 +231,7 @@
       }
     }
 
+    // Fetch page title from an xvideos.com link as video title fallback
     async function getXVideosTitle(link) {
       try {
         const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(link);
@@ -228,9 +241,13 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
-        const titleSpan = doc.querySelector("#title-auto-tr");
-        if (titleSpan && titleSpan.textContent.trim()) {
-          return titleSpan.textContent.trim();
+        // Use <title> element and clean it up
+        const titleTag = doc.querySelector("title");
+        if (titleTag) {
+          let titleText = titleTag.textContent.trim();
+          // Remove trailing site suffix if present
+          titleText = titleText.replace(/ - Xvideos\.com$/, "").trim();
+          return titleText || null;
         }
         return null;
       } catch (e) {
@@ -239,6 +256,7 @@
       }
     }
 
+    // Save new video entry and update UI/localStorage
     async function saveLink() {
       const nameInput = document.getElementById("name");
       const linkInput = document.getElementById("link");
@@ -252,9 +270,12 @@
         return;
       }
 
-      // Activate loading spinner
+      // Activate loading spinner and disable button
       saveButton.disabled = true;
       saveButton.classList.add("loading");
+
+      // Give browser a moment to render loading spinner
+      await new Promise(r => setTimeout(r, 50));
 
       let artist = null;
       let character = null;
@@ -265,11 +286,7 @@
       } else if (link.includes("xvideos.com")) {
         if (!name) {
           const xTitle = await getXVideosTitle(link);
-          if (xTitle) {
-            name = xTitle;
-          } else {
-            name = "Untitled Video";
-          }
+          name = xTitle || "Untitled Video";
         }
       }
 
@@ -279,15 +296,19 @@
 
       entries.push({ name, link, artist, character });
       localStorage.setItem("videoLinks", JSON.stringify(entries));
+
+      // Clear inputs
       nameInput.value = "";
       linkInput.value = "";
+
       renderList();
 
-      // Reset loading spinner
+      // Reset button
       saveButton.disabled = false;
       saveButton.classList.remove("loading");
     }
 
+    // Return a video tag if the link is a direct video file
     function getVideoTag(link) {
       if (link.endsWith(".mp4") || link.endsWith(".webm")) {
         return `<video src="${link}" autoplay muted loop controls></video>`;
@@ -295,6 +316,7 @@
       return "";
     }
 
+    // Render the saved videos list
     function renderList() {
       const list = document.getElementById("list");
       list.innerHTML = "";
@@ -313,6 +335,7 @@
       });
     }
 
+    // Delete entry and update localStorage/UI
     function deleteEntry(index) {
       if (confirm("Delete this video link?")) {
         entries.splice(index, 1);
@@ -321,6 +344,7 @@
       }
     }
 
+    // Initial render on page load
     renderList();
   </script>
 </body>
