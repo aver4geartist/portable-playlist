@@ -1,23 +1,107 @@
-.copy-button {
-  background-color: #394b59;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
+<script>
+  let entries = JSON.parse(localStorage.getItem("videoLinks") || "[]");
 
-.copy-button:hover {
-  background-color: #4f6375;
-}
+  async function getArtistFromRule34(link) {
+    try {
+      const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(link);
+      const res = await fetch(proxy);
+      const data = await res.json();
+      const html = data.contents;
 
-.copy-button img {
-  width: 20px;
-  height: 20px;
-  pointer-events: none;
-}
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+
+      const artistLis = Array.from(doc.querySelectorAll("li.tag-type-artist.tag"));
+      const artists = [];
+
+      artistLis.forEach(li => {
+        const links = Array.from(li.querySelectorAll("a"));
+        links.forEach(a => {
+          const name = a.textContent.trim();
+          const href = a.getAttribute("href");
+          if (name !== "?" && href && !href.includes("index.php?page=wiki")) {
+            artists.push(name);
+          }
+        });
+      });
+
+      const uniqueArtists = [...new Set(artists)];
+      return uniqueArtists.length ? uniqueArtists.join(", ") : null;
+    } catch (e) {
+      console.error("Error fetching artist:", e);
+      return null;
+    }
+  }
+
+  async function saveLink() {
+    const nameInput = document.getElementById("name");
+    const linkInput = document.getElementById("link");
+    const name = nameInput.value.trim();
+    const link = linkInput.value.trim();
+
+    if (!name || !link) {
+      alert("Please fill in both fields.");
+      return;
+    }
+
+    let artist = null;
+    if (link.includes("rule34.xxx")) {
+      artist = await getArtistFromRule34(link);
+    }
+
+    entries.push({ name, link, artist });
+    localStorage.setItem("videoLinks", JSON.stringify(entries));
+    nameInput.value = "";
+    linkInput.value = "";
+    renderList();
+  }
+
+  function getVideoTag(link) {
+    if (link.endsWith(".mp4") || link.endsWith(".webm")) {
+      return `<video src="${link}" autoplay muted loop controls></video>`;
+    }
+    return "";
+  }
+
+  function renderList() {
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+    entries.forEach((entry, index) => {
+      const div = document.createElement("div");
+      div.className = "entry";
+      div.innerHTML = `
+        <strong>${entry.name}</strong><br>
+        ${entry.artist ? `<span class="artist">Artist: ${entry.artist}</span><br>` : ""}
+        <a href="${entry.link}" target="_blank">${entry.link}</a>
+        ${getVideoTag(entry.link)}
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <button onclick="deleteEntry(${index})">Remove</button>
+          <button onclick="copyLink('${entry.link}')" title="Copy Link" class="copy-button">
+            <img src="copy.png" alt="Copy">
+          </button>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function deleteEntry(index) {
+    if (confirm("Delete this video link?")) {
+      entries.splice(index, 1);
+      localStorage.setItem("videoLinks", JSON.stringify(entries));
+      renderList();
+    }
+  }
+
+  function copyLink(link) {
+    navigator.clipboard.writeText(link)
+      .then(() => {
+        alert("Link copied to clipboard!");
+      })
+      .catch(err => {
+        console.error("Copy failed:", err);
+      });
+  }
+
+  renderList();
+</script>
