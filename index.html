@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>portable playlist :3</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- [your CSS remains unchanged] -->
   <style>
     :root {
       --bg-color: #0d1117;
@@ -20,7 +19,142 @@
       --artist-color: gold;
       --character-color: #2ecc40;
     }
-    /* [CSS omitted for brevity, it's unchanged from your post] */
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      width: 100%;
+    }
+
+    input {
+      background-color: var(--input-bg);
+      color: var(--text-color);
+    }
+
+    button {
+      background-color: var(--button-bg);
+      color: white;
+      border: none;
+      transition: background-color 0.2s;
+      position: relative;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    button:hover:not(:disabled) {
+      background-color: var(--button-hover);
+    }
+
+    /* Remove button styled same as save button (full width) */
+    .entry button {
+      background-color: var(--remove-button-bg);
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .entry button:hover {
+      background-color: var(--remove-button-hover);
+    }
+
+    .entry {
+      background-color: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 10px;
+    }
+
+    .entry video {
+      margin-top: 10px;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    h2 {
+      color: var(--highlight);
+      margin-bottom: 5px;
+    }
+
+    a {
+      color: var(--link-color);
+      word-break: break-word;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .artist {
+      color: var(--artist-color);
+      font-style: italic;
+      font-weight: bold;
+    }
+
+    .character {
+      color: var(--character-color);
+      font-style: italic;
+      font-weight: bold;
+      margin-left: 5px;
+    }
+
+    /* Spinner for loading state */
+    button.loading::after {
+      content: "";
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-left: 8px;
+      border: 2px solid white;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 15px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -99,6 +233,7 @@
       }
     }
 
+    // NEW: Extract xvideos title forcibly from <h2 class="page-title">
     async function getXVideosTitle(link) {
       try {
         const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(link);
@@ -110,8 +245,9 @@
 
         const h2title = doc.querySelector("h2.page-title");
         if (h2title) {
+          // Remove any nested <span> content (like duration)
           const span = h2title.querySelector("span.duration");
-          if (span) span.remove();
+          if(span) span.remove();
           const text = h2title.textContent.trim();
           return text || null;
         }
@@ -138,6 +274,7 @@
       saveButton.disabled = true;
       saveButton.classList.add("loading");
 
+      // Wait a tick so spinner appears before heavy async tasks
       await new Promise(r => setTimeout(r, 50));
 
       let artist = null;
@@ -147,6 +284,7 @@
         artist = await getArtistFromRule34(link);
         character = await getCharactersFromRule34(link);
       } else if (link.includes("xvideos.com")) {
+        // Always override the name forcibly from <h2.page-title> on xvideos links, regardless of input
         const xTitle = await getXVideosTitle(link);
         name = xTitle || "Untitled Video";
       }
